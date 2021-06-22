@@ -108,5 +108,67 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setClock('.timer', deadline);
 
+  // Modal
+
+  const modalTrigger = document.querySelectorAll('[data-modal]'), // все тригеры
+    modal = document.querySelector('.modal'), // само окно
+    modalCloseBtn = document.querySelector('[data-close]'); //крестик на модальном окне
+
+  // закрытие и открытие модалок выносим в отдельную функции, 
+  // так как этот код вызывается несколько раз в разных событиях
+
+  function openModal() {
+    modal.classList.add('show'); // данные класы включают и выключают видимость нашего элемента
+    modal.classList.remove('hide');
+    document.body.style.overflow = 'hidden'; // блокировка прокрутки страницы во время открытого модального окна;
+    clearInterval(modalTimerId);
+  }
+
+  modalTrigger.forEach(btn => {
+    btn.addEventListener('click', openModal);
+  });
+
+  function closeModal() {
+    modal.classList.add('hide');
+    modal.classList.remove('show');
+    document.body.style.overflow = ''; // возобновление прокрутки страницы
+
+  }
+
+  modalCloseBtn.addEventListener('click', closeModal);
+
+  // выключение модалки по клику на подложку
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) { // modal - наш элемент с модальным окном
+      closeModal();
+    }
+  });
+
+  // выключение модалки при нажатии ESC
+
+  document.addEventListener('keydown', (event) => { // keydown - событие - "клавиша нажата"
+    if (event.code === 'Escape' && modal.classList.contains('show')) { // .code - свойство event
+      closeModal();
+    }
+  });
+
+  // всплытие модалки по времени
+
+  const modalTimerId = setInterval(openModal, 3000);
+
+  // всплытие модалки по скролингу
+
+  function showModalByScroll() {
+    if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
+      // document.documentElement.scrollHeight - максимальная высота содержимого элемента
+      // clientHeight - высота клиента (высота видимого диапазона страницы)
+      // window.pageYOffset - позиция по оси Y
+      openModal();
+      window.removeEventListener('scroll', showModalByScroll); // убираем событие
+    }
+  }
+
+  window.addEventListener('scroll', showModalByScroll);
 
 });
