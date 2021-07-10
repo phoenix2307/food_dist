@@ -254,4 +254,59 @@ window.addEventListener('DOMContentLoaded', () => {
     );
     div3.render();
 
+    // Forms
+
+    const forms = document.querySelectorAll('form');
+
+    const message = { //заготовки сообщений о статусе запроса для пользователя
+        loading: 'Идет загрузка...',
+        succes: 'Спасибо! Скоро мы с вами свяжемся',
+        failure: 'Что-то пошло не так...'
+    };
+
+    forms.forEach(item => {
+        postData(item);
+    });
+
+    function postData(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); //отключение параметров по умолчанию для события (e), то есть перезагрузка страницы
+            // это обязательная первая строка в AJAX-запросах
+
+            const statusMessage = document.createElement('div');
+            statusMessage.classList.add('status');
+            statusMessage.textContent = message.loading; // первое сообщение о загрузке процесса
+            // дальше нужно вывести на страницу это собщение
+            form.append(statusMessage);
+
+            const request = new XMLHttpRequest();
+            request.open('POST', 'server.php'); //метод POST и путь куда отправляются данные server.php
+
+            // request.setRequestHeader('Content-type', 'miltipart/form-data');
+            //!!! ВАЖНО. при использовании XMLHttpRequest в связке с FormDate заголовки указываются автоматически. Если его указать, то при получении ответа от сервера мы получаем пустой объект от вместо объекта с теми данными, которые мы отправили через форму.
+            // При такой связке нет необходимости прописывать заголовки setRequestHeader()
+
+            const formData = new FormData(form); // форма, с которой мы берем данные
+
+            request.send(formData);
+
+            request.addEventListener('load', () => { // load - отслеживаем полную загрузку нашего запроса
+                if (request.status === 200) { // 200 - все ок, на запрос успешно прошел
+                    console.log(request.response); //здесь размещаются ответы пользователю по поводу статуса его отправки формы:
+                    // спасибо мы с вами свжемся, или при неудачной отправке соответствующее сообщение
+                    statusMessage.textContent = message.succes;
+                    //очистка формы после удачной отправки:
+                    form.reset(); // или можно перелопатить все input.values и очистить их
+                    setTimeout(() => {
+                        statusMessage.remove();
+                    }, 2000);
+
+                } else {
+                    statusMessage.textContent = message.failure;
+                }
+
+            });
+        });
+    }
+
 });
