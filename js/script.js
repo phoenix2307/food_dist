@@ -285,10 +285,23 @@ window.addEventListener('DOMContentLoaded', () => {
             // request.setRequestHeader('Content-type', 'miltipart/form-data');
             //!!! ВАЖНО. при использовании XMLHttpRequest в связке с FormDate заголовки указываются автоматически. Если его указать, то при получении ответа от сервера мы получаем пустой объект от вместо объекта с теми данными, которые мы отправили через форму.
             // При такой связке нет необходимости прописывать заголовки setRequestHeader()
+            // но можно создать стандартный обьект и потом перевести его в json и  дальше работать с ним:
+
+            //Отправка данных в формате JSON
+            //1. Обязательно прописываем заголовки
+            request.setRequestHeader('Content-type', 'application/json');
 
             const formData = new FormData(form); // форма, с которой мы берем данные
 
-            request.send(formData);
+            // 2. Для работы с FormData (а это специфичный объект) придется сначала перевести его в стандартный объект
+            const object = {};
+            formData.forEach(function (value, key) {
+                object[key] = value;
+            });
+            //3. Теперь можно трансформировать нормальный объект в JSON:
+            const json = JSON.stringify(object);
+            request.send(json);
+            // request.send(formData);
 
             request.addEventListener('load', () => { // load - отслеживаем полную загрузку нашего запроса
                 if (request.status === 200) { // 200 - все ок, на запрос успешно прошел
