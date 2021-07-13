@@ -111,8 +111,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // Modal
 
     const modalTrigger = document.querySelectorAll('[data-modal]'), // все тригеры
-        modal = document.querySelector('.modal'), // само окно
-        modalCloseBtn = document.querySelector('[data-close]'); //крестик на модальном окне
+        modal = document.querySelector('.modal'); // само окно
+    //крестик на модальном окне
+    // modalCloseBtn = document.querySelector('[data-close]'); эту строку убрали в связи невозможностью обрабатывать событие крестик при динамическом html
 
     // закрытие и открытие модалок выносим в отдельную функции, 
     // так как этот код вызывается несколько раз в разных событиях
@@ -135,13 +136,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    modalCloseBtn.addEventListener('click', closeModal);
+    // modalCloseBtn.addEventListener('click', closeModal); эту строку убрали в связи невозможностью обрабатывать событие крестик при динамическом html
 
     // выключение модалки по клику на подложку
 
     modal.addEventListener('click', (event) => {
-        if (event.target === modal) { // modal - наш элемент с модальным окном
+        // modal - наш элемент с модальным окном
+        if (event.target === modal || event.target.getAttribute('data-close') == '') { //ИЛИ целевой элемент имеет атрибут data-close, в нашем случае это крестик
             closeModal();
+            //то есть событие сработает при клике на подложке модалки или крестика
         }
     });
 
@@ -155,7 +158,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // всплытие модалки по времени
 
-    const modalTimerId = setInterval(openModal, 3000);
+    const modalTimerId = setTimeout(openModal, 50000);
 
     // всплытие модалки по скролингу
 
@@ -259,7 +262,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('form');
 
     const message = { //заготовки сообщений о статусе запроса для пользователя
-        loading: 'Идет загрузка...',
+        loading: 'img/form/spinner.svg',
         succes: 'Спасибо! Скоро мы с вами свяжемся',
         failure: 'Что-то пошло не так...'
     };
@@ -273,11 +276,18 @@ window.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); //отключение параметров по умолчанию для события (e), то есть перезагрузка страницы
             // это обязательная первая строка в AJAX-запросах
 
-            const statusMessage = document.createElement('div');
-            statusMessage.classList.add('status');
-            statusMessage.textContent = message.loading; // первое сообщение о загрузке процесса
-            // дальше нужно вывести на страницу это собщение
-            form.append(statusMessage);
+            const statusMessage = document.createElement('img'); //тут будет спинер
+            statusMessage.src = message.loading;
+            //добавить стили, для вывода синера в центр экрана
+            //вообще-то правильнее будет добавить эти стили в css-файл, и оттуда подтягивать соответствующий класс
+            statusMessage.style.cssText = `
+                display: block;
+                margin:0 auto;
+            `;
+
+            // дальше нужно это вывести на страницу
+            // form.append(statusMessage); более гибкий вариант - insertAdjacentElement 
+            form.insertAdjacentElement('afterend', statusMessage);
 
             const request = new XMLHttpRequest();
             request.open('POST', 'server.php'); //метод POST и путь куда отправляются данные server.php
@@ -304,22 +314,49 @@ window.addEventListener('DOMContentLoaded', () => {
             // request.send(formData);
 
             request.addEventListener('load', () => { // load - отслеживаем полную загрузку нашего запроса
-                if (request.status === 200) { // 200 - все ок, на запрос успешно прошел
+                if (request.status === 200) { // 200 - все ок, наш запрос успешно прошел
                     console.log(request.response); //здесь размещаются ответы пользователю по поводу статуса его отправки формы:
-                    // спасибо мы с вами свжемся, или при неудачной отправке соответствующее сообщение
-                    statusMessage.textContent = message.succes;
+                    // ответ в новом модальном окне, которое закроется через 4000мс
+                    showThanksModal(message.succes);
                     //очистка формы после удачной отправки:
                     form.reset(); // или можно перелопатить все input.values и очистить их
-                    setTimeout(() => {
-                        statusMessage.remove();
-                    }, 2000);
-
+                    statusMessage.remove();
                 } else {
-                    statusMessage.textContent = message.failure;
+                    showThanksModal(message.failure);
                 }
 
             });
         });
+    }
+
+    function showThanksModal(message) {
+        //берем существующее модальное окно
+        const prevModalDialog = document.querySelector('.modal__dialog');
+        // скрываем его содержимое
+        prevModalDialog.classList.add('hide');
+        //запускаем модальное окно
+        openModal();
+        //создаем div-обертку нового модального окна
+        const thanksModal = document.createElement('div');
+        //добавляем емустили от старого модального
+        thanksModal.classList.add('modal__dialog');
+        //формирование верстки нового модального окна
+        //не забываем, что крестик (<div class="modal__close" data-close>&times;</div>)
+        //который создается динамически не сможет обрабатывать событие закрытия окна
+        thanksModal.innerHTML = `
+            <div class="modal__content">
+                <div class="modal__close" data-close>&times;</div>
+                <div class="modal__title">${message}</div>
+            </div>
+        `;
+        //добавить сгенерированный html на страницу
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+            thanksModal.remove(); //удаление динамического блока
+            prevModalDialog.classList.add('show'); //отображение старого окна
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000);
     }
 
 });
