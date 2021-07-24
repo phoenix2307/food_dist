@@ -278,7 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const statusMessage = document.createElement('img'); //тут будет спинер
             statusMessage.src = message.loading;
-            //добавить стили, для вывода синера в центр экрана
+            //добавить стили, для вывода спинера в центр экрана
             //вообще-то правильнее будет добавить эти стили в css-файл, и оттуда подтягивать соответствующий класс
             statusMessage.style.cssText = `
                 display: block;
@@ -289,8 +289,7 @@ window.addEventListener('DOMContentLoaded', () => {
             // form.append(statusMessage); более гибкий вариант - insertAdjacentElement 
             form.insertAdjacentElement('afterend', statusMessage);
 
-            const request = new XMLHttpRequest();
-            request.open('POST', 'server.php'); //метод POST и путь куда отправляются данные server.php
+            //метод POST и путь куда отправляются данные server.php
 
             // request.setRequestHeader('Content-type', 'miltipart/form-data');
             //!!! ВАЖНО. при использовании XMLHttpRequest в связке с FormDate заголовки указываются автоматически. Если его указать, то при получении ответа от сервера мы получаем пустой объект от вместо объекта с теми данными, которые мы отправили через форму.
@@ -299,7 +298,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             //Отправка данных в формате JSON
             //1. Обязательно прописываем заголовки
-            request.setRequestHeader('Content-type', 'application/json');
+            // request.setRequestHeader('Content-type', 'application/json');
 
             const formData = new FormData(form); // форма, с которой мы берем данные
 
@@ -308,24 +307,23 @@ window.addEventListener('DOMContentLoaded', () => {
             formData.forEach(function (value, key) {
                 object[key] = value;
             });
-            //3. Теперь можно трансформировать нормальный объект в JSON:
-            const json = JSON.stringify(object);
-            request.send(json);
-            // request.send(formData);
 
-            request.addEventListener('load', () => { // load - отслеживаем полную загрузку нашего запроса
-                if (request.status === 200) { // 200 - все ок, наш запрос успешно прошел
-                    console.log(request.response); //здесь размещаются ответы пользователю по поводу статуса его отправки формы:
-                    // ответ в новом модальном окне, которое закроется через 4000мс
+            fetch('server.php', {
+                    method: "POST",
+                    headers: {
+                        'Content-type': 'application/json'
+                    },
+                    body: JSON.stringify(object)
+                }).then(data => data.text())
+                .then(data => {
+                    console.log(data);
                     showThanksModal(message.succes);
-                    //очистка формы после удачной отправки:
-                    form.reset(); // или можно перелопатить все input.values и очистить их
                     statusMessage.remove();
-                } else {
+                }).catch(() => {
                     showThanksModal(message.failure);
-                }
-
-            });
+                }).finally(() => {
+                    form.reset();
+                });
         });
     }
 
@@ -358,5 +356,4 @@ window.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }, 4000);
     }
-
 });
