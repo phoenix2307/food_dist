@@ -356,4 +356,8 @@ window.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }, 4000);
     }
+
+    fetch('http://localhost:3000/menu') // обращение к JSON-серверу
+        .then(data => data.json())
+        .then(res => console.log(res));
 });
