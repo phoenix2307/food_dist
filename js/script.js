@@ -225,37 +225,53 @@ window.addEventListener('DOMContentLoaded', () => {
     new MenuCard().render();
     */
 
-    const div = new MenuCard( //нужные аргументы
-        "img/tabs/vegy.jpg",
-        "vegy",
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu .container',
-        'menu__item',
-        'big'
-    );
-    div.render();
-    const div2 = new MenuCard( //нужные аргументы
-        "img/tabs/elite.jpg",
-        "elite",
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        10,
-        '.menu .container',
-        'menu__item'
-    );
-    div2.render();
-    const div3 = new MenuCard( //нужные аргументы
-        "img/tabs/post.jpg",
-        "post",
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        20,
-        '.menu .container',
-        'menu__item'
-    );
-    div3.render();
+    const getResource = async (url) => { //функция-шаблон для геттинга данных от сервера
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+        }
+
+        return await res.json(); // return дожидается выполнения промиса res.json() и только тогда возвращает егов виде js-объекта
+    };
+
+    // getResource('http://localhost:3000/menu')
+    //     .then(data => {
+    //         //деструктуризация - вытягивание свойст с  объекта 
+    //         data.forEach(({
+    //             img,
+    //             altimg,
+    //             title,
+    //             descr,
+    //             price
+    //         }) => {
+    //             new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+    //         });
+    //     });
+
+    getResource('http://localhost:3000/menu')
+        .then(data => createCard(data));
+
+    function createCard(data) {
+        data.forEach(({img, altimg, title, descr, price}) => {
+            const element = document.createElement('div');
+
+            element.classList.add('menu__item');
+
+            element.innerHTML = `
+            <img src=${img} alt=${altimg}>
+            <h3 class="menu__item-subtitle">${title}</h3>
+            <div class="menu__item-descr">${descr}</div>
+            <div class="menu__item-divider"></div>
+            <div class="menu__item-price">
+                <div class="menu__item-cost">Цена:</div>
+                <div class="menu__item-total"><span>${price}</span> грн/день</div>
+            </div>
+            `;
+
+            document.querySelector('.menu .container').append(element);
+        });
+    }
 
     // Forms
 
@@ -268,10 +284,22 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach(item => {
-        postData(item);
+        bindPostData(item);
     });
 
-    function postData(form) {
+    const postData = async (url, data) => { //функция-шаблон для постинга данных на сервер
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        }); 
+
+        return await res.json(); // return дожидается выполнения промиса res.json() и только тогда возвращает егов виде js-объекта
+    };
+
+    function bindPostData(form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault(); //отключение параметров по умолчанию для события (e), то есть перезагрузка страницы
             // это обязательная первая строка в AJAX-запросах
@@ -303,18 +331,14 @@ window.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(form); // форма, с которой мы берем данные
 
             // 2. Для работы с FormData (а это специфичный объект) придется сначала перевести его в стандартный объект
-            const object = {};
-            formData.forEach(function (value, key) {
-                object[key] = value;
-            });
-
-            fetch('server.php', {
-                    method: "POST",
-                    headers: {
-                        'Content-type': 'application/json'
-                    },
-                    body: JSON.stringify(object)
-                }).then(data => data.text())
+            //Распрлстраненный метод:
+            // const object = {};
+            // formData.forEach(function (value, key) {
+            //     object[key] = value;
+            // });
+            // Продвинутый метод:
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+            postData('http://localhost:3000/requests', json)
                 .then(data => {
                     console.log(data);
                     showThanksModal(message.succes);
