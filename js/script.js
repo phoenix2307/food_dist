@@ -237,9 +237,16 @@ window.addEventListener('DOMContentLoaded', () => {
         return await res.json(); // return дожидается выполнения промиса res.json() и только тогда возвращает егов виде js-объекта
     };
      // Вариант 1 получения данных с сервера и генерации карточек товара с помощью класса MenuCard
-    getResource('http://localhost:3000/menu')
+    // getResource('http://localhost:3000/menu')
+    //     .then(data => {
+    //         data.forEach(({img, altimg, title, descr, price}) => {//используем деструктуризацию объекта
+    //             new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+    //         });
+    //     });
+
+    axios.get('http://localhost:3000/menu')
         .then(data => {
-            data.forEach(({img, altimg, title, descr, price}) => {//используем деструктуризацию объекта
+            data.data.forEach(({img, altimg, title, descr, price}) => {//используем деструктуризацию объекта
                 new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
             });
         });
