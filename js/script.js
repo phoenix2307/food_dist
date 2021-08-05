@@ -158,7 +158,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // всплытие модалки по времени
 
-    const modalTimerId = setTimeout(openModal, 50000);
+    // const modalTimerId = setTimeout(openModal, 50000);
 
     // всплытие модалки по скролингу
 
@@ -176,7 +176,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Используем классы для карточек товара
 
-    class MenuCard {
+    class MenuCard {// unit 48
         constructor(src, alt, title, descr, price, parentSelector, ...classes) {
             this.src = src;
             this.alt = alt;
@@ -199,6 +199,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const element = document.createElement('div');
             this.classes.forEach(className => element.classList.add(className));
             element.innerHTML = `
+            <div class="menu__item">
                 <img src=${this.src} alt=${this.alt}>
                 <h3 class="menu__item-subtitle">${this.title}</h3>
                 <div class="menu__item-descr">${this.descr}</div>
@@ -207,6 +208,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     <div class="menu__item-cost">Цена:</div>
                     <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
                 </div>
+            </div>
             `;
             this.parent.append(element);
         }
@@ -234,44 +236,39 @@ window.addEventListener('DOMContentLoaded', () => {
 
         return await res.json(); // return дожидается выполнения промиса res.json() и только тогда возвращает егов виде js-объекта
     };
+     // Вариант 1 получения данных с сервера и генерации карточек товара с помощью класса MenuCard
+    getResource('http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({img, altimg, title, descr, price}) => {//используем деструктуризацию объекта
+                new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+            });
+        });
+
+    // Вариант 2 получения данных с сервера и генерации карточки товара с помощью функции, без класса
 
     // getResource('http://localhost:3000/menu')
-    //     .then(data => {
-    //         //деструктуризация - вытягивание свойст с  объекта 
-    //         data.forEach(({
-    //             img,
-    //             altimg,
-    //             title,
-    //             descr,
-    //             price
-    //         }) => {
-    //             new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
-    //         });
+    //     .then(data => createCard(data));
+
+    // function createCard(data) {
+    //     data.forEach(({img, altimg, title, descr, price}) => {
+    //         const element = document.createElement('div');
+
+    //         element.classList.add('menu__item');
+
+    //         element.innerHTML = `
+    //         <img src=${img} alt=${altimg}>
+    //         <h3 class="menu__item-subtitle">${title}</h3>
+    //         <div class="menu__item-descr">${descr}</div>
+    //         <div class="menu__item-divider"></div>
+    //         <div class="menu__item-price">
+    //             <div class="menu__item-cost">Цена:</div>
+    //             <div class="menu__item-total"><span>${price}</span> грн/день</div>
+    //         </div>
+    //         `;
+
+    //         document.querySelector('.menu .container').append(element);
     //     });
-
-    getResource('http://localhost:3000/menu')
-        .then(data => createCard(data));
-
-    function createCard(data) {
-        data.forEach(({img, altimg, title, descr, price}) => {
-            const element = document.createElement('div');
-
-            element.classList.add('menu__item');
-
-            element.innerHTML = `
-            <img src=${img} alt=${altimg}>
-            <h3 class="menu__item-subtitle">${title}</h3>
-            <div class="menu__item-descr">${descr}</div>
-            <div class="menu__item-divider"></div>
-            <div class="menu__item-price">
-                <div class="menu__item-cost">Цена:</div>
-                <div class="menu__item-total"><span>${price}</span> грн/день</div>
-            </div>
-            `;
-
-            document.querySelector('.menu .container').append(element);
-        });
-    }
+    // }
 
     // Forms
 
