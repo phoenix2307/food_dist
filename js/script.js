@@ -394,6 +394,7 @@ window.addEventListener('DOMContentLoaded', () => {
           current = document.querySelector('#current');
     let slideIndex = 1; //индекс слайда в нашем каталоге слайдов
 
+    /*
     showSlides(slideIndex);
 
     if (slides.length < 10) {//отображение общего количества слайдов
@@ -423,8 +424,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
-
-
     function plusSlides (n) {
         showSlides(slideIndex += n);
     }
@@ -436,6 +435,7 @@ window.addEventListener('DOMContentLoaded', () => {
     next.addEventListener('click', () => {
         plusSlides(1);
     });
+    */
 
 
 });
