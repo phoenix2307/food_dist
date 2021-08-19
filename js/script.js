@@ -432,7 +432,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // для них тоже нужна своя оболочка, чтобы работать с ними отдельно
     slider.style.position = 'relative';
 
-    const indicators = document.createElement('ol');
+    const indicators = document.createElement('ol'),
+          dots = [];
     indicators.classList.add('carousel-indicators');
     indicators.style.cssText = `
         position: absolute;
@@ -450,7 +451,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     for (let i = 0; i < slides.length; i++) {
         const dot = document.createElement('li');
-        dot.setAttribute('data-slide-to', i + 1);
+        dot.setAttribute('data-slide-to', i + 1); // присваивание каждой точке-индикатору атрибута, чтобы понимать какая точка к какому слайдеру будет привязана
+        // не до конца понял, почему он это использует, и как оно работает. урок 63 (5:52).
         dot.style.cssText = `
             box-sizing: content-box;
             flex: 0 1 auto;
@@ -466,6 +468,13 @@ window.addEventListener('DOMContentLoaded', () => {
             opacity: .5;
             transition: opacity .6s ease;
         `;
+        if (i == 0) {
+            dot.style.opacity = 1; //100% непрозрачности
+        }
+        indicators.append(dot);
+        //в процессе прохождения цикла for создается еще и массив точек dots
+        dots.push(dot);
+
     }
 
     next.addEventListener('click', () => {
@@ -490,6 +499,9 @@ window.addEventListener('DOMContentLoaded', () => {
         } else {
             current.textContent = slideIndex;
         }
+
+        dots.forEach(dot => dot.style.opacity = '.5');
+        dots[slideIndex - 1].style.opacity = 1;
     });
 
     prev.addEventListener('click', () => {
@@ -512,6 +524,30 @@ window.addEventListener('DOMContentLoaded', () => {
         } else {
             current.textContent = slideIndex;
         }
+
+        dots.forEach(dot => dot.style.opacity = '.5');
+        dots[slideIndex - 1].style.opacity = 1;
+    });
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            const slideTo = e.target.getAttribute('data-slide-to');
+
+            slideIndex = slideTo;
+            offset = offset = +width.slice(0, width.length - 2) * (slideTo - 1);
+
+            slidesField.style.transform = `translateX(-${offset}px)`;
+
+            if (slides.length < 10) {
+                current.textContent = `0${slideIndex}`;
+            } else {
+                current.textContent = slideIndex;
+            }
+
+            dots.forEach(dot => dot.style.opacity = '.5');
+            dots[slideIndex - 1].style.opacity = 1;
+
+        });
     });
 
     /*
