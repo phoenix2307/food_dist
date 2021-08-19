@@ -158,7 +158,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // всплытие модалки по времени
 
-    // const modalTimerId = setTimeout(openModal, 50000);
+    const modalTimerId = setTimeout(openModal, 50000);
 
     // всплытие модалки по скролингу
 
@@ -391,8 +391,87 @@ window.addEventListener('DOMContentLoaded', () => {
           prev = document.querySelector('.offer__slider-prev'),
           next = document.querySelector('.offer__slider-next'),
           total = document.querySelector('#total'),
-          current = document.querySelector('#current');
+          current = document.querySelector('#current'),
+          slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+          slidesField = document.querySelector('.offer__slider-inner'),
+          width = window.getComputedStyle(slidesWrapper).width; // получение параметра ширины через ComputedStyle для окошка, через которое будем смотреть на нашу карусель слайдов
     let slideIndex = 1; //индекс слайда в нашем каталоге слайдов
+    let offset = 0; // отступ
+
+    if (slides.length < 10) {//отображение общего количества слайдов
+        total.textContent = `0${slides.length}`;
+        current.textContent = `0${slideIndex}`;
+    } else {
+        total.textContent = slides.length;
+        current.textContent = slideIndex;
+    }
+
+    if (slides.length < 10) {//отображение общего количества слайдов
+        total.textContent = `0${slides.length}`;
+    } else {
+        total.textContent = slides.length;
+    }    if (slides.length < 10) {//отображение общего количества слайдов
+        total.textContent = `0${slides.length}`;
+    } else {
+        total.textContent = slides.length;
+    }
+
+    slidesField.style.width = 100 * slides.length + '%';//задаем ширину
+    slidesField.style.display = 'flex';
+    slidesField.style.transition = '0.5s all';
+
+    slidesWrapper.style.overflow = 'hidden';
+
+
+    slides.forEach(slide => {
+        slide.style.width = width; // подгоняем все слайды под один размер
+    });
+
+    next.addEventListener('click', () => {
+        //задаем условие если это последний слайд...
+        if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)) {
+            //поскольку width это строка с значением '500px', то сначала преобразовать в число и убрать 'px', то есть последние два символа
+            offset = 0; // сдвигаем окно в начало цикла показов
+        } else {
+            offset += +width.slice(0, width.length - 2);
+        }
+
+        slidesField.style.transform = `translateX(-${offset}px)`;//сдвиг элемента по горизонтали в пикселях
+
+        if (slideIndex == slides.length) {
+            slideIndex = 1;
+        } else {
+            slideIndex++;
+        }
+
+        if (slides.length < 10) {
+            current.textContent = `0${slideIndex}`;
+        } else {
+            current.textContent = slideIndex;
+        }
+    });
+
+    prev.addEventListener('click', () => {
+        if (offset == 0) {
+            offset = +width.slice(0, width.length - 2) * (slides.length - 1);
+        } else {
+            offset -= +width.slice(0, width.length - 2);
+        }
+
+        slidesField.style.transform = `translateX(-${offset}px)`;//сдвиг элемента по горизонтали в пикселях
+
+        if (slideIndex == 1) {
+            slideIndex = slides.length;
+        } else {
+            slideIndex--;
+        }
+
+        if (slides.length < 10) {
+            current.textContent = `0${slideIndex}`;
+        } else {
+            current.textContent = slideIndex;
+        }
+    });
 
     /*
     showSlides(slideIndex);
@@ -436,6 +515,9 @@ window.addEventListener('DOMContentLoaded', () => {
         plusSlides(1);
     });
     */
+
+   
+    // Слайдер №2. Unit 62. Второй, более сложный вариант слайдера. html нужно корректировать
 
 
 });
