@@ -452,6 +452,7 @@ window.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < slides.length; i++) {
         const dot = document.createElement('li');
         dot.setAttribute('data-slide-to', i + 1); // присваивание каждой точке-индикатору атрибута, чтобы понимать какая точка к какому слайдеру будет привязана
+        //выглядит атрибут так: data-slide-to="3"
         // не до конца понял, почему он это использует, и как оно работает. урок 63 (5:52).
         dot.style.cssText = `
             box-sizing: content-box;
@@ -477,13 +478,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
+
+    // используем регул. выражение (replace/\D/g, ''), которое убирает из строки не числа, в нашем случае это 'px'
+    // регулярку ставиим вместо метода slice: +width.slice(0, width.length - 2)
+    //помещаем этот метод в техническую функцию
+
+    function deleteNotDigit(str) {
+        return +str.replace(/\D/g, '');
+    }
+
     next.addEventListener('click', () => {
         //задаем условие если это последний слайд...
-        if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)) {
+        if (offset == deleteNotDigit(width) * (slides.length - 1)) {
             //поскольку width это строка с значением '500px', то сначала преобразовать в число и убрать 'px', то есть последние два символа
             offset = 0; // сдвигаем окно в начало цикла показов
         } else {
-            offset += +width.slice(0, width.length - 2);
+            offset += deleteNotDigit(width);
         }
 
         slidesField.style.transform = `translateX(-${offset}px)`;//сдвиг элемента по горизонтали в пикселях
@@ -506,9 +516,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     prev.addEventListener('click', () => {
         if (offset == 0) {
-            offset = +width.slice(0, width.length - 2) * (slides.length - 1);
+            offset = deleteNotDigit(width) * (slides.length - 1);
         } else {
-            offset -= +width.slice(0, width.length - 2);
+            offset -= deleteNotDigit(width);
         }
 
         slidesField.style.transform = `translateX(-${offset}px)`;//сдвиг элемента по горизонтали в пикселях
@@ -534,7 +544,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const slideTo = e.target.getAttribute('data-slide-to');
 
             slideIndex = slideTo;
-            offset = offset = +width.slice(0, width.length - 2) * (slideTo - 1);
+            offset = offset = deleteNotDigit(width) * (slideTo - 1);
 
             slidesField.style.transform = `translateX(-${offset}px)`;
 
@@ -550,50 +560,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /*
-    showSlides(slideIndex);
-
-    if (slides.length < 10) {//отображение общего количества слайдов
-        total.textContent = `0${slides.length}`;
-    } else {
-        total.textContent = slides.length;
-    }
-
-    function showSlides(n) {
-        if (n > slides.length) {//если индекс слайда больше максимального значения всех слайдо, то перекинтуь на первую картинку
-        slideIndex = 1;
-        }
-
-        if (n < 1) {//обратный эфект. Если мы проклацали по стрелке в левую сторону))
-            slideIndex = slides.length;
-        }
-
-        slides.forEach(item => item.style.display = 'none'); //скрытие всех слайдов
-
-        slides[slideIndex - 1].style.display = 'block'; //показать выбраный слайд
-
-        if (slides.length < 10) {//отображение номера текущего слайда
-            current.textContent = `0${slideIndex}`;
-        } else {
-            current.textContent = slideIndex;
-        }
-
-    }
-
-    function plusSlides (n) {
-        showSlides(slideIndex += n);
-    }
-
-    prev.addEventListener('click', () => {
-        plusSlides(-1);
-    });
-    
-    next.addEventListener('click', () => {
-        plusSlides(1);
-    });
-    */
-
-   
     // Слайдер №2. Unit 62. Второй, более сложный вариант слайдера. html нужно корректировать
 
 
