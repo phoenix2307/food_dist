@@ -560,7 +560,104 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Слайдер №2. Unit 62. Второй, более сложный вариант слайдера. html нужно корректировать
+    // Calc
+
+    //результат работы калькулятора
+    const result = document.querySelector('.calculating__result span');
+    let sex= 'female',
+    height, weight, age,
+    ratio = 1.375; // данные, которые будут использоваться в работе калькулятора по умолчанию. ratio - уровень активности
+
+    //общая формула для подсчета
+    function calcTotal() {
+        // необходимо делать проверку данных для работы калькулятора
+        // потому что кальк будет работать только тогда, когда будут заполнены все данные
+        if (!sex || !height || !weight || !age || !ratio) {
+            result.textContent = 'Введите все данные';
+            return; // для того, чтобы прервать нашу ф-цию в случае остутсвия каких-то данных
+        }
+
+        if (sex === 'female') {
+            //используем формулу вычисления каллорий из статьи
+            result.textContent = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * ratio);
+        } else {
+            // формула для мужчин
+            result.textContent = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * ratio);
+        }
+
+    }
+
+    calcTotal();
+
+    // получение данных для калькулятора со статических элементов (div)
+    // эта ф-ция будет реагировать на клики, которые делаются либо по выбору активности (через data-ratio)
+    // либо по выбору пола (через id)
+    function getStaticInformation(parentSelector, activeClass) {
+        const elements = document.querySelectorAll(`${parentSelector} div`);
+        // `${parentSelector} div` - получение всех дивов внутри родительского элемента. В нашем случае это уровень активности. Они идентифицируются по data-atribut
+        // а activeClass - класс активности, который присваивается выбранному статичесому элементу (меняется цвет кнопки и т.д.)
+
+        document.querySelector(parentSelector).addEventListener('click', (e) => {
+            // используем элемент события
+            if (e.target.getAttribute('data-ratio')) { // если мы кликаем по элементам активности
+                ratio = +e.target.getAttribute('data-ratio');
+                // если у объекта события есть атрибут data-ratio, то переменной ratio присваиваем значение элемента события, то есть значение data-ratio (здесб это хначения коэфициента активности, прописано прямо в html)
+            } else {// если мы не кликнули по выбору активности, то работаем с данными пола (sex)
+                sex = e.target.getAttribute('id'); // либо женщина, либо мужчина
+            }
+
+            console.log(ratio, sex);
+
+            // перебираем элементы. Сначала убираем класс активности у всех, а потом присваиваем элементу на котором зафиксировано событие - клик
+            elements.forEach(elem => {
+                elem.classList.remove(activeClass);
+            });
+
+            e.target.classList.add(activeClass);
+
+            calcTotal();
+        });
+    }
+
+    // запуск ф-ции getStaticInformation для выбора пола
+    // в качестве родителя указываем id, который йесть у div с выбором пола
+    getStaticInformation('#gender', 'calculating__choose-item_active');
+
+    // запуск ф-ции getStaticInformation для типа активности
+    // в качестве родителя указываем class, который йесть у div с выбором активности
+    getStaticInformation('.calculating__choose_big', 'calculating__choose-item_active');
+    //дважды запускаем ф-цию для того, чтобы обработчик события прошел оба родительских дива
 
 
+
+    // получение данных с input
+    function getDynamicInformation(selectorInput) {
+        const input = document.querySelector(selectorInput);
+
+        input.addEventListener('input', () => {
+            // проверяем статус input с помощью switch case
+            // и при получении данных в какой-то input, эти данные поступают в определенную переменную
+            switch(input.getAttribute('id')) {// id, которые есть у каждого input
+                case 'height':
+                    height = +input.value;
+                    break;
+                case 'weight':
+                    weight = +input.value;
+                    break;
+                case 'age':
+                    age = +input.value;
+                    break;
+            }
+
+            calcTotal();
+            //функцию calcTotal() вызываем сразу после input. Это позволяет получить результат обработки сразу после введения данных input
+
+        });
+    }
+
+    getDynamicInformation('#height');
+    getDynamicInformation('#weight');
+    getDynamicInformation('#age ');
+
+    // урок калькулятор 25:38
 });
