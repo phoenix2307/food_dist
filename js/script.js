@@ -564,9 +564,45 @@ window.addEventListener('DOMContentLoaded', () => {
 
     //результат работы калькулятора
     const result = document.querySelector('.calculating__result span');
-    let sex= 'female',
-    height, weight, age,
-    ratio = 1.375; // данные, которые будут использоваться в работе калькулятора по умолчанию. ratio - уровень активности
+    let sex, height, weight, age, ratio; //ratio - уровень активности
+    // данные, которые будут использоваться в работе калькулятора по умолчанию
+    // берем лтбо из localStorage, где клиент мог уже оставить свои данные, либо выставляем нужные нам данные для параметров по умолчанию
+
+    if (localStorage.getItem('sex')) {
+        // если есть данные в хранилище, то используем их
+        sex = localStorage.getItem('sex');
+    } else {
+        // иначе используем 'female'  и заносим эти параметры в localStorage
+        sex = 'female';
+        localStorage.setItem('sex', 'female');
+    }
+
+    if (localStorage.getItem('ratio')) {
+        // если есть данные в хранилище, то используем их
+        ratio = localStorage.getItem('ratio');
+    } else {
+        // иначе используем 'female'  и заносим эти параметры в localStorage
+        ratio = 1.375;
+        localStorage.setItem('ratio', 1.375);
+    }
+
+    // функция для того, чтобы изменять класс активности на элементах, которые остались в localStorage
+    function initLocalSettings(selector, activeClass) {
+        const elements = document.querySelectorAll(selector);
+
+        elements.forEach(elem => {
+            elem.classList.remove(activeClass);
+            if (elem.getAttribute('id') === localStorage.getItem('sex')) {
+                elem.classList.add(activeClass);
+            }
+            if (elem.getAttribute('data-ratio') === localStorage.getItem('ratio')) {
+                elem.classList.add(activeClass);
+            }
+        });
+    }
+
+    initLocalSettings('#gender div', 'calculating__choose-item_active');
+    initLocalSettings('.calculating__choose_big div', 'calculating__choose-item_active');
 
     //общая формула для подсчета
     function calcTotal() {
@@ -592,40 +628,48 @@ window.addEventListener('DOMContentLoaded', () => {
     // получение данных для калькулятора со статических элементов (div)
     // эта ф-ция будет реагировать на клики, которые делаются либо по выбору активности (через data-ratio)
     // либо по выбору пола (через id)
-    function getStaticInformation(parentSelector, activeClass) {
-        const elements = document.querySelectorAll(`${parentSelector} div`);
+    function getStaticInformation(selector, activeClass) {
+        const elements = document.querySelectorAll(selector);
         // `${parentSelector} div` - получение всех дивов внутри родительского элемента. В нашем случае это уровень активности. Они идентифицируются по data-atribut
         // а activeClass - класс активности, который присваивается выбранному статичесому элементу (меняется цвет кнопки и т.д.)
 
-        document.querySelector(parentSelector).addEventListener('click', (e) => {
-            // используем элемент события
-            if (e.target.getAttribute('data-ratio')) { // если мы кликаем по элементам активности
-                ratio = +e.target.getAttribute('data-ratio');
-                // если у объекта события есть атрибут data-ratio, то переменной ratio присваиваем значение элемента события, то есть значение data-ratio (здесб это хначения коэфициента активности, прописано прямо в html)
-            } else {// если мы не кликнули по выбору активности, то работаем с данными пола (sex)
-                sex = e.target.getAttribute('id'); // либо женщина, либо мужчина
-            }
-
-            console.log(ratio, sex);
-
-            // перебираем элементы. Сначала убираем класс активности у всех, а потом присваиваем элементу на котором зафиксировано событие - клик
-            elements.forEach(elem => {
-                elem.classList.remove(activeClass);
+        elements.forEach(elem => {
+            elem.addEventListener('click', (e) => {
+                // используем элемент события
+                if (e.target.getAttribute('data-ratio')) { // если мы кликаем по элементам активности
+                    ratio = +e.target.getAttribute('data-ratio');
+                    // если у объекта события есть атрибут data-ratio, то переменной ratio присваиваем значение элемента события, то есть значение data-ratio (здесб это хначения коэфициента активности, прописано прямо в html)
+    
+                    // далее для сохопнения выбраных статических данных пользователья , отправляем их в localStorage:
+                    localStorage.setItem('ratio', +e.target.getAttribute('data-ratio'));
+    
+                } else {// если мы не кликнули по выбору активности, то работаем с данными пола (sex)
+                    sex = e.target.getAttribute('id'); // либо женщина, либо мужчина
+                    localStorage.setItem('sex', e.target.getAttribute('id'));
+                }
+    
+                console.log(ratio, sex);
+    
+                // перебираем элементы. Сначала убираем класс активности у всех, а потом присваиваем элементу на котором зафиксировано событие - клик
+                elements.forEach(elem => {
+                    elem.classList.remove(activeClass);
+                });
+    
+                e.target.classList.add(activeClass);
+    
+                calcTotal();
             });
-
-            e.target.classList.add(activeClass);
-
-            calcTotal();
         });
+        
     }
 
     // запуск ф-ции getStaticInformation для выбора пола
     // в качестве родителя указываем id, который йесть у div с выбором пола
-    getStaticInformation('#gender', 'calculating__choose-item_active');
+    getStaticInformation('#gender div', 'calculating__choose-item_active');
 
     // запуск ф-ции getStaticInformation для типа активности
     // в качестве родителя указываем class, который йесть у div с выбором активности
-    getStaticInformation('.calculating__choose_big', 'calculating__choose-item_active');
+    getStaticInformation('.calculating__choose_big div', 'calculating__choose-item_active');
     //дважды запускаем ф-цию для того, чтобы обработчик события прошел оба родительских дива
 
 
@@ -635,6 +679,12 @@ window.addEventListener('DOMContentLoaded', () => {
         const input = document.querySelector(selectorInput);
 
         input.addEventListener('input', () => {
+            // проверяем или введенные данные являются числами, и при ошибке подсвечивем красным border нашего input
+            if (input.value.match(/\D/g)) {
+                input.style.border = '1px solid red';
+            } else {
+                input.style.border = 'none';
+            }
             // проверяем статус input с помощью switch case
             // и при получении данных в какой-то input, эти данные поступают в определенную переменную
             switch(input.getAttribute('id')) {// id, которые есть у каждого input
@@ -659,5 +709,4 @@ window.addEventListener('DOMContentLoaded', () => {
     getDynamicInformation('#weight');
     getDynamicInformation('#age ');
 
-    // урок калькулятор 25:38
 });
